@@ -191,7 +191,7 @@ kbd{font:600 12px ui-monospace,monospace;background:var(--panel-2);border:1px so
       <div class="modes" id="modes">
         <label class="modeopt sel" data-mode="study">
           <div class="mi">📖</div>
-          <div><b>Study mode</b><span>The correct answer and the explanation appear <b>immediately</b> after you answer each question, and the timer <b>pauses</b> while you read. Best for learning.</span></div>
+          <div><b>Study mode</b><span>Pick an answer, change your mind freely, then hit <b>Check answer</b> to reveal the explanation — the timer <b>pauses</b> while you read. Best for learning.</span></div>
         </label>
         <label class="modeopt" data-mode="exam">
           <div class="mi">📝</div>
@@ -202,7 +202,7 @@ kbd{font:600 12px ui-monospace,monospace;background:var(--panel-2);border:1px so
       <ul class="muted" style="margin-top:0;padding-left:20px;line-height:1.7">
         <li>Every question is multiple choice — <b>one</b> best answer, three plausible distractors.</li>
         <li>Navigate freely, flag questions for review, and jump around with the question palette.</li>
-        <li>In <b>study mode</b> your answer locks on the first click so you see the correct one; in <b>exam mode</b> you can change answers until you submit.</li>
+        <li>In <b>study mode</b> nothing is revealed until you press <b>Check answer</b> — until then you can switch options freely; after checking, the question locks. In <b>exam mode</b> you can change answers until you submit.</li>
         <li>Answer every item — unanswered questions are scored as incorrect (as on the real exam).</li>
         <li>Submit to get a scaled-score estimate (100–1000, pass ≥ 720), a per-domain breakdown, and full explanations.</li>
         <li>Your progress autosaves in this browser. Shortcuts: <kbd>A</kbd>–<kbd>D</kbd> or <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>←</kbd>/<kbd>→</kbd> navigate · <kbd>F</kbd> flag.</li>
@@ -285,9 +285,9 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
   var LETTERS = ["A","B","C","D"];
   var state = load() || fresh();
 
-  function fresh(){ return {mode:"study",answers:{},flags:{},started:false,submitted:false,remaining:D.timeLimitSec,cur:0}; }
+  function fresh(){ return {mode:"study",answers:{},flags:{},checked:{},started:false,submitted:false,remaining:D.timeLimitSec,cur:0}; }
   function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
-  function load(){ try{ var s=localStorage.getItem(LS); return s?JSON.parse(s):null; }catch(e){ return null; } }
+  function load(){ try{ var s=localStorage.getItem(LS); var p=s?JSON.parse(s):null; if(p&&(typeof p.checked!=="object"||!p.checked)) p.checked={}; return p; }catch(e){ return null; } }
   function reset(){ state=fresh(); save(); }
 
   // ---------- theme ----------
@@ -325,14 +325,16 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
   // ---------- exam ----------
   function isStudy(){ return state.mode==="study"; }
   function answered(id){ return state.answers[id]!==undefined; }
+  function isChecked(id){ return !!state.checked[id]; }
   // Timer pauses in study mode whenever the current question is already answered (feedback showing).
-  function isPaused(){ return isStudy() && answered(Q[state.cur].id); }
+  function isPaused(){ return isStudy() && isChecked(Q[state.cur].id); }
 
   function enterExam(){
     startScreen.classList.add("hide"); resultScreen.classList.add("hide"); examScreen.classList.remove("hide");
     progWrap.classList.remove("hide"); timerEl.classList.remove("hide");
     var mt=el("modeTag"); mt.classList.remove("hide"); mt.textContent=isStudy()?"📖 Study mode":"📝 Exam mode";
     buildLegend(); buildPalette(); renderQ(); startTimer();
+    window.scrollTo(0,0);
   }
   function startTimer(){ if(timerInt) clearInterval(timerInt); renderTimer(); timerInt=setInterval(onTick,1000); }
   function onTick(){
@@ -354,7 +356,7 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
   function renderQ(){
     var i=state.cur, q=Q[i];
     var picked=state.answers[q.id];
-    var reveal=isStudy() && picked!==undefined;   // study mode + answered => show feedback
+    var reveal=isStudy() && isChecked(q.id);   // study mode + explicitly checked => show feedback
     var sc = q.scenario ? '<span class="badge sc">'+esc(q.scenario)+'</span>' : '';
     var html='<div class="qmeta">'+
       '<span class="qnum">Question '+(i+1)+' / '+Q.length+'</span>'+
@@ -386,14 +388,21 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
     }
     el("flagBtn").classList.toggle("on",!!state.flags[q.id]);
     el("prevBtn").disabled=i===0;
-    el("nextBtn").disabled=i===Q.length-1;
+    // One morphing button: "Check answer" replaces "Next" in the same spot until checked.
+    var nb=el("nextBtn");
+    if(isStudy() && picked!==undefined && !isChecked(q.id)){
+      nb.textContent="Check answer"; nb.setAttribute("data-act","check"); nb.classList.add("primary"); nb.disabled=false;
+    } else {
+      nb.textContent="Next →"; nb.setAttribute("data-act","next"); nb.classList.remove("primary"); nb.disabled=(i===Q.length-1);
+    }
+    el("submitBtn").classList.toggle("hide",i!==Q.length-1);
     updateProgress(); refreshPalette(); renderTimer();
   }
   function pick(k){
     var q=Q[state.cur];
-    if(isStudy() && answered(q.id)) return;   // locked in study mode
+    if(isStudy() && isChecked(q.id)) return;  // locked once the answer was checked
     state.answers[q.id]=k; save();
-    if(isStudy()){ renderQ(); }               // reveal feedback + pause
+    if(isStudy()){ renderQ(); }               // re-render: selection + "Check answer" button
     else {
       Array.prototype.forEach.call(qcard.querySelectorAll(".opt"),function(o){ o.classList.toggle("sel",parseInt(o.getAttribute("data-k"),10)===k); });
       updateProgress(); refreshPalette();
@@ -404,14 +413,14 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
     progBar.style.width=(n/Q.length*100)+"%";
     var extra="";
     if(isStudy()){
-      var c=0; Q.forEach(function(q){ if(state.answers[q.id]===q.answer) c++; });
+      var c=0; Q.forEach(function(q){ if(isChecked(q.id) && state.answers[q.id]===q.answer) c++; });
       extra=" · "+c+" correct so far";
     }
     answeredCount.textContent=n+" of "+Q.length+" answered"+extra;
   }
   function buildLegend(){
     var h='<span><i class="sw a"></i> Answered</span>';
-    if(isStudy()) h='<span><i class="sw g"></i> Correct</span><span><i class="sw r"></i> Incorrect</span>';
+    if(isStudy()) h='<span><i class="sw g"></i> Correct</span><span><i class="sw r"></i> Incorrect</span><span><i class="sw a"></i> Not checked yet</span>';
     h+='<span><i class="sw f"></i> Flagged</span><span><i class="sw"></i> Not answered</span>';
     el("legend").innerHTML=h;
   }
@@ -420,7 +429,7 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
     for(var i=0;i<Q.length;i++) h+='<button class="cell" data-i="'+i+'">'+(i+1)+'</button>';
     palette.innerHTML=h;
     Array.prototype.forEach.call(palette.querySelectorAll(".cell"),function(c){
-      c.onclick=function(){ state.cur=parseInt(c.getAttribute("data-i"),10); save(); renderQ(); };
+      c.onclick=function(){ state.cur=parseInt(c.getAttribute("data-i"),10); save(); renderQ(); scrollToQ(); };
     });
   }
   function refreshPalette(){
@@ -428,15 +437,26 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
       var i=parseInt(c.getAttribute("data-i"),10), q=Q[i], a=state.answers[q.id];
       c.classList.remove("answered","ok","no");
       if(a!==undefined){
-        if(isStudy()) c.classList.add(a===q.answer?"ok":"no");
+        if(isStudy() && isChecked(q.id)) c.classList.add(a===q.answer?"ok":"no");
         else c.classList.add("answered");
       }
       c.classList.toggle("flag",!!state.flags[q.id]);
       c.classList.toggle("current",i===state.cur);
     });
   }
-  el("prevBtn").onclick=function(){ if(state.cur>0){state.cur--;save();renderQ();} };
-  el("nextBtn").onclick=function(){ if(state.cur<Q.length-1){state.cur++;save();renderQ();} };
+  // Scroll the new question under the sticky topbar — without this, tapping Next
+  // at the bottom of a long question on mobile leaves the viewport at the bottom.
+  function scrollToQ(){
+    var tb=document.querySelector(".topbar");
+    var off=(tb?tb.offsetHeight:0)+10;
+    var y=qcard.getBoundingClientRect().top+window.pageYOffset-off;
+    window.scrollTo({top:y<0?0:y,behavior:"smooth"});
+  }
+  el("prevBtn").onclick=function(){ if(state.cur>0){state.cur--;save();renderQ();scrollToQ();} };
+  el("nextBtn").onclick=function(){
+    if(this.getAttribute("data-act")==="check"){ var q=Q[state.cur]; state.checked[q.id]=true; save(); renderQ(); }
+    else if(state.cur<Q.length-1){ state.cur++; save(); renderQ(); scrollToQ(); }
+  };
   el("flagBtn").onclick=function(){ var q=Q[state.cur]; state.flags[q.id]=!state.flags[q.id]; save(); el("flagBtn").classList.toggle("on",!!state.flags[q.id]); refreshPalette(); };
   el("submitBtn").onclick=function(){ doSubmit(false); };
 
@@ -458,6 +478,7 @@ window.EXAM_DATA = {"id": "cca-mock-60", "title": "Claude Certified Architect �
     else if(["1","2","3","4"].indexOf(k)>=0){ pick(parseInt(k,10)-1); }
     else if(e.key==="ArrowLeft"){ el("prevBtn").click(); }
     else if(e.key==="ArrowRight"){ el("nextBtn").click(); }
+    else if(e.key==="Enter"){ var nb=el("nextBtn"); if(nb.getAttribute("data-act")==="check"){ e.preventDefault(); nb.click(); } }
     else if(k==="f"){ el("flagBtn").click(); }
   });
 

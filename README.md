@@ -16,7 +16,7 @@ Related reading:
 ## What's inside
 
 - **60 original MCQs** — single-best-answer items framed in production scenarios, weighted to the official domain blueprint, adversarially verified against Anthropic's published exam objectives. None duplicate the official sample questions.
-- **Study mode** — instant feedback after every answer, with an explanation; the timer pauses while you read.
+- **Study mode** — pick an answer (switch freely), hit **Check answer** to reveal the explanation; the timer pauses while you read.
 - **Exam mode** — full 120-minute timed simulation of the real sitting.
 - **Scaled scoring** — 100–1000 scale with the real 720 pass threshold.
 - **Per-domain breakdown** — see exactly which of the five domains needs more work.
