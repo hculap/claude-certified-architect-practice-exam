@@ -17,13 +17,13 @@ Related reading:
 
 ## All four practice exams
 
-The same engine runs a free practice exam for each Claude certification:
+szymonpaluch.com runs a free practice exam for each Claude certification. The `index.html` in this repo is a separate, older version of the Architect – Foundations one.
 
 | Certification | Code | Questions | Practice exam |
 |---|---|---|---|
 | Claude Certified Associate – Foundations | CCAO-F | 60 | [Take it](https://szymonpaluch.com/claude-certified-associate-practice-exam) |
 | Claude Certified Developer – Foundations | CCDV-F | 53 | [Take it](https://szymonpaluch.com/claude-certified-developer-practice-exam) |
-| Claude Certified Architect – Foundations | CCAR-F | 60 | [Take it](https://szymonpaluch.com/claude-certified-architect-practice-exam) (this repo) |
+| Claude Certified Architect – Foundations | CCAR-F | 60 | [Take it](https://szymonpaluch.com/claude-certified-architect-practice-exam) (questions in this repo) |
 | Claude Certified Architect – Professional | CCAR-P | 63 | [Take it](https://szymonpaluch.com/claude-certified-architect-professional-practice-exam) |
 
 All four on one page: [Claude certification practice exams](https://szymonpaluch.com/claude-certification-practice-exams).
@@ -34,13 +34,14 @@ All four on one page: [Claude certification practice exams](https://szymonpaluch
 - **[PDF](https://szymonpaluch.com/downloads/claude-certified-architect-foundations-practice-questions.pdf)**: the same 60 questions with answers and explanations, no form to fill in.
 - **Inside Claude**: the site runs a public MCP server that serves the same 60 questions one at a time in chat, with no signup or API key. [Setup for Claude and Claude Code](https://szymonpaluch.com/claude-certified-architect-practice-exam#mcp).
 
-`questions/ccar-f.md` is generated from the JSON bank behind the online exam, so do not edit it by hand. To regenerate it:
+`questions/ccar-f.md` and the question data in `index.html` (`window.EXAM_DATA`) are both written from the JSON bank behind the online exam, so do not edit either by hand. To regenerate them, or to check that they still match the bank:
 
 ```bash
-node scripts/bank-to-markdown.mjs path/to/cca-mock-exam.json
+node scripts/sync-bank.mjs path/to/cca-mock-exam.json          # rewrite both files
+node scripts/sync-bank.mjs path/to/cca-mock-exam.json --check  # exit 1 if either differs
 ```
 
-The script needs Node.js and nothing else. It adds no text of its own to the explanations: it only splits each one into sentences and labels the sentences that name a wrong option.
+The script needs Node.js and nothing else, and refuses a bank with an empty stem, explanation or option, or an answer index out of range. In the Markdown, each explanation keeps its own sentences in their original order; the script adds headings and, where a sentence names a wrong option by its letter, a "Why B is wrong" label.
 
 ## What's inside the app
 
