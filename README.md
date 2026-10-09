@@ -1,39 +1,67 @@
 # Claude Certified Architect – Foundations: Free Practice Exam (60 Questions)
 
-A free, unofficial **Claude certified architect practice exam** — 60 original multiple-choice questions for the **Anthropic Claude Certified Architect – Foundations** certification (exam code CCAR-F). If you're searching for **claude certification exam questions**, a **CCA Foundations mock exam**, or **Claude Code certification prep**, this is a full-length simulation: same format (60 MCQ), same time limit (120 minutes), same domain blueprint, same scaled scoring with a 720 pass mark.
+A free, unofficial **Claude Certified Architect practice exam** for the Anthropic **Claude Certified Architect – Foundations** certification (exam code **CCAR-F**): 60 original single-answer questions across all six exam scenarios, each with an explanation. Take it as a CCA Foundations mock exam in the browser, read the [whole question bank in Markdown](questions/ccar-f.md), or download it as a PDF.
 
-> **Unofficial practice material.** This project is not affiliated with, endorsed by, or sponsored by Anthropic. All questions are original, modeled on the publicly available exam guide. See [Disclaimer](#disclaimer).
+**About the format.** Anthropic's CCAR-F also uses multiple-response items and selects four of the six scenarios for each sitting; this practice exam does neither. The 120-minute timer is there to practise pacing. The score is this tool's own formula: it does not reproduce Anthropic's exam or its scoring.
+
+> **Unofficial practice material.** This project is not affiliated with, endorsed by, or sponsored by Anthropic. All questions are original, written from the publicly available exam guide. See [Disclaimer](#disclaimer).
 
 ## Try it online
 
-**▶ [Take the practice exam](https://szymonpaluch.com/claude-certified-architect-practice-exam)** — no signup, no tracking, runs entirely in your browser.
+**▶ [Take the practice exam](https://szymonpaluch.com/claude-certified-architect-practice-exam)**: free, no account, runs in your browser.
 
 Related reading:
 
-- [How this practice exam was built (60 questions, methodology)](https://szymonpaluch.com/blog/posts/claude-certified-architect-practice-questions.html)
-- [I passed Claude Certified Architect: decisions, not definitions](https://szymonpaluch.com/blog/posts/claude-certified-architect-exam.html) — the author's exam story
+- [Claude Certified Architect exam questions and answers](https://szymonpaluch.com/blog/posts/claude-certified-architect-practice-questions): three sample questions worked through, with the traps and study sources
+- [Claude Certified Architect Foundations: my exam experience](https://szymonpaluch.com/blog/posts/claude-certified-architect-exam), the author's account of the exam day
 
-## What's inside
+## All four practice exams
 
-- **60 original MCQs** — single-best-answer items framed in production scenarios, weighted to the official domain blueprint, adversarially verified against Anthropic's published exam objectives. None duplicate the official sample questions.
-- **Study mode** — pick an answer (switch freely), hit **Check answer** to reveal the explanation; the timer pauses while you read.
-- **Exam mode** — full 120-minute timed simulation of the real sitting.
-- **Scaled scoring** — 100–1000 scale with the real 720 pass threshold.
-- **Per-domain breakdown** — see exactly which of the five domains needs more work.
-- **Review with explanations** — every question explains why the right answer is right and the distractors are wrong.
-- **Resume anytime** — progress is saved in `localStorage`; close the tab and pick up where you left off.
+szymonpaluch.com runs a free practice exam for each Claude certification. The `index.html` in this repo is a separate, older version of the Architect – Foundations one.
 
-## Exam blueprint
+| Certification | Code | Questions | Practice exam |
+|---|---|---|---|
+| Claude Certified Associate – Foundations | CCAO-F | 60 | [Take it](https://szymonpaluch.com/claude-certified-associate-practice-exam) |
+| Claude Certified Developer – Foundations | CCDV-F | 53 | [Take it](https://szymonpaluch.com/claude-certified-developer-practice-exam) |
+| Claude Certified Architect – Foundations | CCAR-F | 60 | [Take it](https://szymonpaluch.com/claude-certified-architect-practice-exam) (questions in this repo) |
+| Claude Certified Architect – Professional | CCAR-P | 63 | [Take it](https://szymonpaluch.com/claude-certified-architect-professional-practice-exam) |
 
-The real exam (launched 2026-03-12) is 60 questions, 120 minutes, proctored. This mock mirrors the official domain weights:
+All four on one page: [Claude certification practice exams](https://szymonpaluch.com/claude-certification-practice-exams).
 
-| Domain | Name | Weight |
-|--------|------|--------|
-| D1 | Agentic Architecture | 27% |
-| D2 | Tool Design & MCP | 18% |
-| D3 | Claude Code Configuration | 20% |
-| D4 | Prompt Engineering & Structured Output | 20% |
-| D5 | Context Management & Reliability | 15% |
+## The question bank
+
+- **[questions/ccar-f.md](questions/ccar-f.md)**: all 60 questions grouped by domain, with the scenario, the options, the correct answer and its explanation. Answers are folded, so you can try each question first. Where an explanation names a wrong option by its letter, that sentence is shown as "Why B is wrong".
+- **[PDF](https://szymonpaluch.com/downloads/claude-certified-architect-foundations-practice-questions.pdf)**: the same 60 questions with answers and explanations, no form to fill in.
+- **Inside Claude**: the site runs a public MCP server that serves the same 60 questions one at a time in chat, with no signup or API key. [Setup for Claude and Claude Code](https://szymonpaluch.com/claude-certified-architect-practice-exam#mcp).
+
+`questions/ccar-f.md` and the question data in `index.html` (`window.EXAM_DATA`) are both written from the JSON bank behind the online exam, so do not edit either by hand. To regenerate them, or to check that they still match the bank:
+
+```bash
+node scripts/sync-bank.mjs path/to/cca-mock-exam.json          # rewrite both files
+node scripts/sync-bank.mjs path/to/cca-mock-exam.json --check  # exit 1 if either differs
+```
+
+The script needs Node.js and nothing else, and refuses a bank with an empty stem, explanation or option, or an answer index out of range. In the Markdown, each explanation keeps its own sentences in their original order; the script adds headings and, where a sentence names a wrong option by its letter, a "Why B is wrong" label.
+
+## What's inside the app
+
+- **60 original single-answer questions**, framed in production scenarios and spread across the five domains in proportion to their published weights.
+- **Study mode**: pick an answer (switch freely), then hit **Check answer** to reveal the explanation. The timer pauses while you read.
+- **Exam mode**: timed practice. No feedback until you submit, and the timer runs the whole time.
+- **Score on a 100–1000 scale**, computed as `100 + 900 × (correct ÷ total)`, with 720 as a practice reference. It is not Anthropic's scoring method or a prediction of your result.
+- **Per-domain breakdown**: see which of the five domains needs more work.
+- **Review with explanations**: every question explains why the right answer is right and the distractors are wrong.
+- **Resume anytime**: progress is saved in `localStorage`, so you can close the tab and pick up where you left off.
+
+## Domains
+
+| Domain | Name | Weight | Questions here |
+|--------|------|--------|----------------|
+| D1 | Agentic Architecture & Orchestration | 27% | 16 |
+| D2 | Tool Design & MCP Integration | 18% | 11 |
+| D3 | Claude Code Configuration & Workflows | 20% | 12 |
+| D4 | Prompt Engineering & Structured Output | 20% | 12 |
+| D5 | Context Management & Reliability | 15% | 9 |
 
 ## Run locally
 
@@ -45,15 +73,15 @@ cd claude-certified-architect-practice-exam
 open index.html   # or just double-click it
 ```
 
-Everything — questions, scoring, timer, UI — is a single self-contained HTML file. It makes zero network requests.
+Everything (questions, scoring, timer, UI) is a single self-contained HTML file. It makes zero network requests.
 
 ## Who made this
 
-[Szymon Paluch](https://szymonpaluch.com) — AI engineer and consultant. I wrote these questions while preparing for the real exam, then passed it on 2026-07-15 with a scaled score of **833/1000** (pass threshold: 720). The questions here are the ones I built to test myself, cleaned up and verified afterwards.
+[Szymon Paluch](https://szymonpaluch.com), AI engineer and consultant. I wrote these questions while preparing for the exam, then passed it on 2026-07-15 with a scaled score of **833/1000** (pass mark: 720). The questions here are the ones I built to test myself, cleaned up and verified afterwards.
 
 ## Disclaimer
 
-This is **unofficial practice material**. It is not affiliated with, endorsed by, or sponsored by Anthropic. All 60 questions are original work, modeled on the publicly available exam guide — they are not leaked, copied, or reconstructed real exam items. Practicing here does not guarantee any exam outcome. "Claude" is a trademark of Anthropic.
+This is **unofficial practice material**. It is not affiliated with, endorsed by, or sponsored by Anthropic. All 60 questions are original work, written from the publicly available exam guide. They are not leaked, copied or reconstructed items from Anthropic's exam. Practising here does not guarantee any exam outcome. "Claude" is a trademark of Anthropic.
 
 ## License
 
